@@ -1,3 +1,4 @@
 # devconnector
 
-ewrwerwerwer
+Developers connect platform.
+Developed using MERN stack.

@@ -39,7 +39,7 @@ router.get(
 );
 
 // @Route POST api/profile
-// @desc Create user profile
+// @desc Create or Edit user profile
 // @access private
 router.post(
   "/",
@@ -57,12 +57,42 @@ router.post(
     if (req.body.status) profileFields.status = req.body.status;
     if (req.body.gethubusername)
       profileFields.gethubusername = req.body.gethubusername;
-    // Skills split into array
     if (typeof req.body.skills !== "undefined") {
+      // Skills split into array
       profileFields.skills = req.body.skills.splilt(",");
     }
-    if (req.body.handle) profileFields.handle = req.body.handle;
-    if (req.body.handle) profileFields.handle = req.body.handle;
+    // Social
+    profileFields.social = {};
+    if (req.body.youtube) profileFields.social.youtube = req.body.youtube;
+    if (req.body.twitter) profileFields.social.twitter = req.body.twitter;
+    if (req.body.linkedin) profileFields.social.linkedin = req.body.linkedin;
+    if (req.body.facebook) profileFields.social.facebook = req.body.facebook;
+    if (req.body.instagram) profileFields.social.instagram = req.body.instagram;
+
+    profile.findOne({ user: req.user.id }).then(profile => {
+      if (profile) {
+        // if profile found it means where here to update
+        Profile.findOneAndUpdate(
+          { user: req.user.id },
+          { $set: profileFields },
+          { new: true }
+        ).then(profile => res.json(profile));
+      } else {
+        // this means create new
+        // Check if handle exixsts
+        Profile.findOne({ handle: profileFields.handle }).then(profile => {
+          if (profile) {
+            //ifit finds a profile with the same handle
+            errors.handle = "that handle already exists";
+            res.status(400).json(errors);
+          }
+          //Save profile
+          new Profile(profileFields)
+            .save()
+            .then(profile => res.json({ profile }));
+        });
+      }
+    });
   }
 );
 
